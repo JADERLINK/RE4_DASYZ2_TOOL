@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{e21bac1a-1180-4fab-a942-e7590fa282fb}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)YZ2.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\Frequency4Tbl.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\FrequencyDecode.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\FrequencyEncode.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\PPMDecode.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\PPMTbl.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\RangeCode.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\RangeCodeInBuffer.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\RangeCodeOutBuffer.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\RangeDecode.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\RangeCode\RangeEncode.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\yz2Decode.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\yz2Encode.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\yz2RangeDec.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)yz2Code\yz2RangeEnc.cxx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)InEvM.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)OutEvM.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)YZ2.h" />
+  </ItemGroup>
+</Project>

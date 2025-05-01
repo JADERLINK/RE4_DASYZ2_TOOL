@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Arquivos de Origem">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Arquivos de Cabeçalho">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Arquivos de Recurso">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="EXTRACT">
+      <UniqueIdentifier>{48bcf1c7-2e9f-4f15-8792-e25f036108e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="REPACK">
+      <UniqueIdentifier>{3740f053-a4bd-46e3-a281-606addb05c1f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc">
+      <Filter>Arquivos de Recurso</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="Resource.rc">
+      <Filter>Arquivos de Recurso</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Resource.h">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="EXTRACT\FileFormat.h">
+      <Filter>EXTRACT</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="RE4_DASYZ2_TOOL.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="AssemblyInfo.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="EXTRACT\CheckYZ2.cpp">
+      <Filter>EXTRACT</Filter>
+    </ClCompile>
+    <ClCompile Include="EXTRACT\Dat.cpp">
+      <Filter>EXTRACT</Filter>
+    </ClCompile>
+    <ClCompile Include="EXTRACT\Extract.cpp">
+      <Filter>EXTRACT</Filter>
+    </ClCompile>
+    <ClCompile Include="EXTRACT\Udas.cpp">
+      <Filter>EXTRACT</Filter>
+    </ClCompile>
+    <ClCompile Include="REPACK\Dat.cpp">
+      <Filter>REPACK</Filter>
+    </ClCompile>
+    <ClCompile Include="REPACK\Udas.cpp">
+      <Filter>REPACK</Filter>
+    </ClCompile>
+    <ClCompile Include="REPACK\DasYZ2.cpp">
+      <Filter>REPACK</Filter>
+    </ClCompile>
+    <ClCompile Include="REPACK\RepackIdxBig.cpp">
+      <Filter>REPACK</Filter>
+    </ClCompile>
+    <ClCompile Include="REPACK\NewDasYZ2.cpp">
+      <Filter>REPACK</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="app.ico">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

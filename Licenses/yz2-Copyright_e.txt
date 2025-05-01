@@ -1,0 +1,55 @@
+This shows the copyright, license, and disclaimer for all the code in the yz2* directory.
+
+●Copyright
+
+Copyright(c) YAMAZAKI Satoshi 2002. All rights reserved.
+
+The copyright of this code belongs to Satoshi Yamazaki.
+
+●License
+
+This code is open source. You may redistribute and modify it in accordance with the "FreeBSD Copyright".
+
+-FreeBSD Copyright
+Original text: http://www.freebsd.org/copyright/freebsd-license.html
+Japanese translation: http://www.freebsd.org/ja/copyright/freebsd-license.html
+
+Note that yz2 is not related to FreeBSD, Inc. Please do not contact FreeBSD, Inc. regarding yz2.
+
+●Disclaimer
+
+We cannot guarantee the operation of this code. Use at your own risk.
+
+●Open source overview of yz2
+
+- You are free to redistribute and modify the source code. You are free to do so even for commercial sales.
+
+When redistributing, please include this copyright, license, and disclaimer.
+
+- There is no obligation to release the source code or inherit the license.
+
+- Best effort limited to yz2
+
+The original author (Yamazaki Satoshi) wishes to release the source code and inherit the license. Please cooperate as much as possible.
+
+In addition, we do not wish for unnecessary branching of the source code. Please cooperate by updating the original as much as possible.
+
+If you have any improvement suggestions or bug information, please contact us at the address below.
+
+・Contact information for the original author (Yamazaki Satoshi)
+
+http://member.nifty.ne.jp/yamazaki/
+mailto: MHB01175@nifty.ne.jp
+
+●Finally
+
+These codes are also the results of the IPA (Information-technology Promotion Agency http://www.ipa.go.jp/)
+
+"H12 Unexplored Software Creation Project".
+
+"H13 Unexplored Software Creation Project".
+
+We are grateful for your cooperation in the development of yz2. Thank you very much.
+
+--
+2002/02/21
