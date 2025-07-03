@@ -24,6 +24,7 @@ namespace EXTRACT
         String^ YZ2Path = nullptr;
         Int32 DatAmount = 0;
         array<String^>^ DatFiles = nullptr;
+        String^ ExtraRel = nullptr;
 
         CheckYZ2(StreamWriter^ idxj, Stream^ readStream, UInt32 offsetStart, UInt32 length, String^ directory, String^ baseName)
         {
@@ -87,6 +88,7 @@ namespace EXTRACT
                     Dat^ a = gcnew Dat(idxj, ms, 0, datArr->Length, directory, baseName, false);
                     DatAmount = a->DatAmount;
                     DatFiles = a->DatFiles;
+                    ExtraRel = a->ExtraRel;
                     ms->Close();
                 }
                 else

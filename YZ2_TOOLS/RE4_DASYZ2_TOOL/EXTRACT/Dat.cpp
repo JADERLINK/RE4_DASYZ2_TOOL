@@ -20,6 +20,7 @@ namespace EXTRACT
     public:
         Int32 DatAmount = 0;
         array<String^>^ DatFiles = nullptr;
+        String^ ExtraRel = nullptr;
 
         Dat(StreamWriter^ idxj, Stream^ readStream, UInt32 offsetStart, UInt32 length, String^ directory, String^ baseName, bool isDecmp)
         {
@@ -28,7 +29,7 @@ namespace EXTRACT
             UInt32 amount = br->ReadUInt32();
             if (amount >= 0x010000)
             {
-                Console::WriteLine("Invalid dat file!");
+                Console::WriteLine("Invalid file!");
                 return;
             }
 
@@ -37,6 +38,23 @@ namespace EXTRACT
                 idxj->WriteLine("DAT_AMOUNT:" + amount);
             }
             DatAmount = static_cast<int>(amount);
+
+            //----
+            UInt32 endDatOffset = length;
+
+            UInt32 extraDrsOffset = br->ReadUInt32();
+
+            bool hasExtraDRS = false;
+
+            if (extraDrsOffset != 0)
+            {
+                hasExtraDRS = true;
+                if (extraDrsOffset < endDatOffset)
+                {
+                    endDatOffset = extraDrsOffset;
+                }
+            }
+            //----
 
             int blocklength = static_cast<int>(amount * 4u);
 
@@ -97,7 +115,7 @@ namespace EXTRACT
                 }
                 else
                 {
-                    subFileLength = static_cast<int>(length - fileList[i]->Key);
+                    subFileLength = static_cast<int>(endDatOffset - fileList[i]->Key);
                 }
 
                 br->BaseStream->Position = offsetStart + fileList[i]->Key;
@@ -122,6 +140,44 @@ namespace EXTRACT
                     idxj->WriteLine(Line);
                 }
             }
+
+            //---
+            if (hasExtraDRS)
+            {
+                String^ FileFullName = Path::Combine(baseName, baseName + "_EXTRA");
+                if (isDecmp)
+                {
+                    FileFullName = baseName + "_EXTRA";
+                }
+                FileFullName += ".REL";
+
+                int subFileLength = static_cast<int>(length - extraDrsOffset);
+                br->BaseStream->Position = offsetStart + extraDrsOffset;
+
+                array<Byte>^ endfile = gcnew array<Byte>(subFileLength);
+                br->Read(endfile, 0, subFileLength);
+                if (subFileLength > 0)
+                {
+                    try
+                    {
+                        File::WriteAllBytes(Path::Combine(directory, FileFullName), endfile);
+                    }
+                    catch (Exception^ ex)
+                    {
+                        Console::WriteLine(FileFullName + ": " + ex);
+                    }
+
+                }
+
+                String^ Line = "EXTRA_REL:" + FileFullName;
+                if (idxj != nullptr)
+                {
+                    idxj->WriteLine(Line);
+                }
+                ExtraRel = FileFullName;
+            }
+
+
         }
 
     private:

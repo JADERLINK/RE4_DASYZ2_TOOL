@@ -42,7 +42,7 @@ namespace EXTRACT
                 idxj->WriteLine("# github.com/JADERLINK");
                 idxj->WriteLine("# youtube.com/@JADERLINK");
                 idxj->WriteLine("# RE4 DASYZ2 TOOL By JADERLINK");
-                idxj->WriteLine("TOOL_VERSION:V04");
+                idxj->WriteLine("TOOL_VERSION:V05");
 
                 switch (fileFormat)
                 {
@@ -91,6 +91,11 @@ namespace EXTRACT
                                 Console::WriteLine("File_" + i + " = " + a->DatFiles[i]);
                             }
                         }
+
+                        if (a->ExtraRel != nullptr)
+                        {
+                            Console::WriteLine("ExtraRel = " + a->ExtraRel);
+                        }
                     }
                     catch (Exception^ ex)
                     {
@@ -104,14 +109,7 @@ namespace EXTRACT
                         Udas^ a = gcnew Udas(idxj, stream, directory, baseName);
 
                         // Console
-                        int Amount = a->DatAmount;
-                        if (a->SndPath != nullptr)
-                        {
-                            Amount += 1;
-                        }
-
-                        Console::WriteLine("FileCount = " + Amount);
-                        Console::WriteLine("SoundFlag = " + a->SoundFlag);
+                        Console::WriteLine("FileCount = " + a->DatAmount);
                         if (a->DatFiles != nullptr)
                         {
                             for (int i = 0; i < a->DatFiles->Length; i++)
@@ -120,14 +118,22 @@ namespace EXTRACT
                             }
                         }
 
+                        if (a->ExtraRel != nullptr)
+                        {
+                            Console::WriteLine("ExtraRel = " + a->ExtraRel);
+                        }
+
                         if (a->hasYZ2 && a->YZ2Path != nullptr)
                         {
+                            Console::WriteLine("Unable to extract YZ2 compression!!");
                             Console::WriteLine("YZ2DAT = " + a->YZ2Path);
                         }
 
+                        Console::WriteLine("SoundFlag = " + a->SoundFlag);
+
                         if (a->SndPath != nullptr)
                         {
-                            Console::WriteLine("File_" + (Amount - 1) + " = " + a->SndPath);
+                            Console::WriteLine("File_SND = " + a->SndPath);
                         }
                     }
                     catch (Exception^ ex)

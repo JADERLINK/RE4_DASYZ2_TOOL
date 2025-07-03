@@ -29,6 +29,7 @@ namespace EXTRACT
         int SoundFlag = -1;
         int DatAmount = 0;
         array<String^>^ DatFiles = nullptr;
+        String^ ExtraRel = nullptr;
         String^ SndPath = nullptr;
         bool hasYZ2 = false;
         String^ YZ2Path = nullptr;
@@ -62,7 +63,7 @@ namespace EXTRACT
 
             if (UdasList[0].offset > readStream->Length)
             {
-                Console::WriteLine("Error extracting UDAS file, first offset is invalid!");
+                Console::WriteLine("Error extracting file, first offset is invalid!");
                 return;
             }
 
@@ -149,12 +150,14 @@ namespace EXTRACT
                     YZ2Path = yz2->YZ2Path;
                     DatAmount = yz2->DatAmount;
                     DatFiles = yz2->DatFiles;
+                    ExtraRel = yz2->ExtraRel;
 
                     if (!yz2->hasYZ2)
                     {
                         Dat^ a = gcnew Dat(idxj, readStream, startOffset, length, directory, baseName, false);
                         DatAmount = a->DatAmount;
                         DatFiles = a->DatFiles;
+                        ExtraRel = a->ExtraRel;
                     }
 
                     readedDat = true;

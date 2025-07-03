@@ -43,6 +43,7 @@ namespace REPACK
                 String^ UDAS_TOP = nullptr;
                 Int32 UDAS_SOUNDFLAG = -1;
                 String^ UDAS_END = nullptr;
+                String^ EXTRA_REL = nullptr;
                 String^ UDAS_MIDDLE = nullptr;
                 String^ YZ2_PATH = nullptr;
                 bool HAS_YZ2 = false;
@@ -86,6 +87,10 @@ namespace REPACK
                             else if (key->Contains("UDAS_END"))
                             {
                                 UDAS_END = value;
+                            }
+                            else if (key->Contains("EXTRA_REL"))
+                            {
+                                EXTRA_REL = value;
                             }
                             else if (key->Contains("UDAS_MIDDLE"))
                             {
@@ -168,11 +173,14 @@ namespace REPACK
                 if (stream != nullptr)
                 {
                     array<DatInfo^>^ datGroup = gcnew array<DatInfo^>(DAT_AMOUNT);
+                    DatInfo^ ExtraRel = nullptr;
 
+                    //calc
                     UInt32 datHeaderLength = 16 + (4 * DAT_AMOUNT * 2);
                     datHeaderLength = (((datHeaderLength + 31) / 32) * 32);
                     UInt32 datFileBytesLength = datHeaderLength;
 
+                    // get files
                     for (int i = 0; i < DAT_AMOUNT; i++)
                     {
                         DatInfo^ dat = gcnew DatInfo();
@@ -213,9 +221,36 @@ namespace REPACK
                         }
                     }
 
+                    //get extraRel
+                    if (EXTRA_REL != nullptr)
+                    {
+                        DatInfo^ extraRel = gcnew DatInfo();
+                        FileInfo^ a = gcnew FileInfo(Path::Combine(info->Directory->FullName, EXTRA_REL));
+                        extraRel->fileInfo = a;
+                        extraRel->Extension = a->Extension->ToUpperInvariant()->Replace(".", "")->PadRight(4, (char)0x0)->Substring(0, 4);
+                        extraRel->Offset = tempOffset;
+
+                        if (a->Exists)
+                        {
+                            int aLength = (int)(((a->Length + 31) / 32) * 32);
+
+                            extraRel->FileExits = true;
+                            datFileBytesLength += (UInt32)aLength;
+                            extraRel->Length = aLength;
+                            tempOffset += (UInt32)aLength;
+
+                            Console::WriteLine("EXTRA_REL: " + EXTRA_REL);
+                            ExtraRel = extraRel;
+                        }
+                        else
+                        {
+                            Console::WriteLine("EXTRA_REL: " + EXTRA_REL + "   (File does not exist!)");
+                        }
+                    }
+
                     if (FILE_FORMAT == "DAT" || FILE_FORMAT == "MAP" || FILE_FORMAT == "DECMP")
                     {
-                        Dat^ _ = gcnew Dat(stream, datHeaderLength, datGroup);
+                        Dat^ _ = gcnew Dat(stream, datGroup, ExtraRel, 0);
                     }
                     else if (FILE_FORMAT == "UDAS" || FILE_FORMAT == "DAS" || FILE_FORMAT == "DRS")
                     {
@@ -293,7 +328,7 @@ namespace REPACK
 
                         if (IS_DAT_COMPRESSED)
                         {
-                            NewDasYZ2^ _ = gcnew NewDasYZ2(stream, datHeaderLength, datGroup, udasGroup);
+                            NewDasYZ2^ _ = gcnew NewDasYZ2(stream, datGroup, udasGroup, ExtraRel);
                         }
                         else if (HAS_YZ2)
                         {
@@ -323,7 +358,7 @@ namespace REPACK
                         }
                         else
                         {
-                            Udas^ _ = gcnew Udas(stream, datHeaderLength, datGroup, udasGroup, isDRS);
+                            Udas^ _ = gcnew Udas(stream, datGroup, udasGroup, isDRS, ExtraRel);
                         }
                     }
 

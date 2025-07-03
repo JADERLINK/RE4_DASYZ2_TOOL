@@ -19,7 +19,7 @@ namespace REPACK
     ref class NewDasYZ2
     {
     public:
-        NewDasYZ2(Stream^ stream, UInt32 DatHeaderLength, array<DatInfo^>^ dat, UdasInfo^ udasGroup)
+        NewDasYZ2(Stream^ stream, array<DatInfo^>^ dat, UdasInfo^ udasGroup, DatInfo^ ExtraRel)
         {
             array<Byte>^ EndBytes = gcnew array<Byte>(udasGroup->End->Length);
             array<Byte>^ MiddleBytes = gcnew array<Byte>(udasGroup->Middle->Length);
@@ -58,10 +58,11 @@ namespace REPACK
             bool hasYZ2 = false;
             {
                 MemoryStream^ datMS = gcnew MemoryStream();
-                Dat^ datWriter = gcnew Dat(datMS, DatHeaderLength, dat);
+                Dat^ datWriter = gcnew Dat(datMS, dat, ExtraRel, 0);
 
                 YZ2::YZ2Actions::YZ2Encode(datMS->ToArray(), yz2Bytes);
-                
+                datMS->Close();
+
                 unsigned int aLength = (unsigned int)(((yz2Bytes->Length + 31) / 32) * 32);
                 udasGroup->DatFileAlignedBytesLength = aLength;
                 udasGroup->DatFileRealBytesLength = (unsigned int)yz2Bytes->Length;

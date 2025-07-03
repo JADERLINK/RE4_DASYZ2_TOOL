@@ -29,7 +29,7 @@ namespace REPACK
     ref class Udas
     {
     public:
-        Udas(Stream^ stream, UInt32 DatHeaderLength, array<DatInfo^>^ dat, UdasInfo^ udasGroup, bool isDRS)
+        Udas(Stream^ stream, array<DatInfo^>^ dat, UdasInfo^ udasGroup, bool isDRS, DatInfo^ ExtraRel)
         {
             array<Byte>^ EndBytes = gcnew array<Byte>(udasGroup->End->Length);
             array<Byte>^ MiddleBytes = gcnew array<Byte>(udasGroup->Middle->Length);
@@ -68,7 +68,7 @@ namespace REPACK
 
             stream->Write(TopBytes, 0, TopBytes->Length);
 
-            Dat^ datWriter = gcnew Dat(stream, DatHeaderLength, dat);
+            Dat^ datWriter = gcnew Dat(stream, dat, ExtraRel, TopBytes->Length);
 
             if (MiddleBytes->Length != 0)
             {

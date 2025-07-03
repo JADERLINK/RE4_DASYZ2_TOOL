@@ -28,14 +28,19 @@ namespace REPACK
     ref class Dat
     {
     public:
-        Dat(Stream^ stream, UInt32 DatHeaderLength, array<DatInfo^>^ dat)
+        Dat(Stream^ stream, array<DatInfo^>^ dat, DatInfo^ ExtraRel, Int64 StartOffset)
         {
+            stream->Position = StartOffset;
+
             array<Byte>^ headerCont = gcnew array<Byte>(16);
-            array<Byte>^ Amount = EndianBitConverter::GetBytes(dat->Length, Endianness::BigEndian);
-            headerCont[0] = Amount[0];
-            headerCont[1] = Amount[1];
-            headerCont[2] = Amount[2];
-            headerCont[3] = Amount[3];
+    
+            EndianBitConverter::GetBytes((UInt32)dat->Length, Endianness::BigEndian)->CopyTo(headerCont, 0); //Amount
+
+            if (ExtraRel != nullptr)
+            {
+                EndianBitConverter::GetBytes(ExtraRel->Offset, Endianness::BigEndian)->CopyTo(headerCont, 4); //ExtraRelOffset
+            }
+
             stream->Write(headerCont, 0, 16);
 
             for (int i = 0; i < dat->Length; i++)
@@ -50,31 +55,44 @@ namespace REPACK
                 stream->Write(name, 0, 4);
             }
 
-            array<Byte>^ complete = gcnew array<Byte>(DatHeaderLength - (16 + (4 * dat->Length * 2)));
-
-            if (complete->Length > 0)
-            {
-                stream->Write(complete, 0, complete->Length);
-            }
-
             for (int i = 0; i < dat->Length; i++)
             {
-                array<Byte>^ archive = gcnew array<Byte>(dat[i]->Length);
+                stream->Position = StartOffset + dat[i]->Offset;
+
                 try
                 {
                     if (dat[i]->FileExits)
                     {
-                        BinaryReader^ br = gcnew BinaryReader(dat[i]->fileInfo->OpenRead());
-                        br->BaseStream->Read(archive, 0, (int)dat[i]->fileInfo->Length);
-                        br->Close();
+                        auto reader = dat[i]->fileInfo->OpenRead();
+                        reader->CopyTo(stream);
+                        reader->Close();
                     }
                 }
                 catch (Exception^ ex)
                 {
                     Console::WriteLine("Error to read file: " + dat[i]->fileInfo->Name + Environment::NewLine + " ex: " + ex);
                 }
-                stream->Write(archive, 0, archive->Length);
             }
+
+            if (ExtraRel != nullptr)
+            {
+                stream->Position = StartOffset + ExtraRel->Offset;
+
+                try
+                {
+                    if (ExtraRel->FileExits)
+                    {
+                        auto reader = ExtraRel->fileInfo->OpenRead();
+                        reader->CopyTo(stream);
+                        reader->Close();
+                    }
+                }
+                catch (Exception^ ex)
+                {
+                    Console::WriteLine("Error to read file: " + ExtraRel->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                }
+            }
+
         }
     };
 }
