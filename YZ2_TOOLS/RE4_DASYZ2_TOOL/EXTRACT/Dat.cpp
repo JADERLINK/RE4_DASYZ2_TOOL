@@ -6,6 +6,7 @@
 #include "EndianBinaryWriter.cpp";
 #include "EndianBitConverter.cpp";
 #include "Endianness.h";
+#include "FileFormat.h"
 
 using namespace System;
 using namespace System::IO;
@@ -21,47 +22,138 @@ namespace EXTRACT
         Int32 DatAmount = 0;
         array<String^>^ DatFiles = nullptr;
         String^ ExtraRel = nullptr;
+        bool IsE3Version = false;
 
-        Dat(StreamWriter^ idxj, Stream^ readStream, UInt32 offsetStart, UInt32 length, String^ directory, String^ baseName, bool isDecmp)
+        Dat(StreamWriter^ idxj, Stream^ readStream, UInt32 offsetStart, UInt32 fullLength, String^ directory, String^ baseName, FileFormat fileFormat)
         {
+            UInt32 tableOffset = 0x10; // na versão final do jogo, a tabela começa no offset 0x10, na E3 em 0x4;
+
+            UInt32 endDatOffset = fullLength; // define o final real dos arquivos com formatos, no DRS tem mais um arquivo no final (REL);
+
+            bool hasExtraDRS = false; // booleano que indica se existe o arquivo adicional do DRS;
+
+            UInt32 extraDrsOffset = 0; // o offset caso tenha o arquivo REL do DRS;
+
             EndianBinaryReader^ br = gcnew EndianBinaryReader(readStream, Endianness::BigEndian);
             br->BaseStream->Position = offsetStart;
+
+            //o primeiro uint, em geral é um amount, exceto na versão GC E3 nos arquivos DRS no qual pode ser um offset;
             UInt32 amount = br->ReadUInt32();
-            if (amount >= 0x010000)
+
+            if (amount >= 0x010000 && fileFormat != FileFormat::DRS) // só é inválido se o valor for maior de 0x10000 e não for DRS;
             {
                 Console::WriteLine("Invalid file!");
                 return;
             }
 
-            if (idxj != nullptr)
+            //os 3 próximos uint são usados para verificar o tipo de conteúdo;
+            UInt32 u2 = br->ReadUInt32();
+            UInt32 u3 = br->ReadUInt32();
+            UInt32 u4 = br->ReadUInt32();
+
+            if (fileFormat != FileFormat::DRS) // caso não for um DRS;
             {
-                idxj->WriteLine("DAT_AMOUNT:" + amount);
-            }
-            DatAmount = static_cast<int>(amount);
-
-            //----
-            UInt32 endDatOffset = length;
-
-            UInt32 extraDrsOffset = br->ReadUInt32();
-
-            bool hasExtraDRS = false;
-
-            if (extraDrsOffset != 0)
-            {
-                hasExtraDRS = true;
-                if (extraDrsOffset < endDatOffset)
+                // verifica se é da versão final ou do E3;
+                if (u2 != 0 || u3 != 0 || u4 != 0)
                 {
-                    endDatOffset = extraDrsOffset;
+                    tableOffset = 0x04; // versão E3
+                    IsE3Version = true;
+                    idxj->WriteLine("IS_E3_VERSION:true");
                 }
             }
-            //----
+            else // é um DRS
+            {
+                if (u3 == 0 && u4 == 0) // se for 0, esse é do tipo final;
+                {
+                    if (u2 != 0) // u2 é a posição do extraDrsOffset;
+                    {
+                        extraDrsOffset = u2;
+                        hasExtraDRS = true;
+                        if (extraDrsOffset < endDatOffset)
+                        {
+                            endDatOffset = extraDrsOffset;
+                        }
+                    }
+
+                }
+                else // senão tipo E3
+                {
+                    tableOffset = 0x04; // versão E3
+                    IsE3Version = true;
+                    idxj->WriteLine("IS_E3_VERSION:true");
+
+                    //no tipo E3 o primeiro campo pode ser uma quantidade ou o extraDrsOffset;
+                    if (amount >= u2) // se for maior que isso, o campo é um offset
+                    {
+                        UInt32 realAmount = 0;
+                        UInt32 lastValidOffset = u2;
+
+                        br->Position = offsetStart + 0x4;
+
+                        while (true) // verificação da quantidade real
+                        {
+                            UInt32 val = br->ReadUInt32();
+
+                            if (val > fullLength && val > 0x30000000) // 30 = 0 or 41 = A
+                            {
+                                break;
+                            }
+
+                            if (br->Position >= offsetStart + u2)
+                            {
+                                Console::WriteLine("Invalid file! E3 DRS LOOP");
+                                return;
+                            }
+
+                            if (val > lastValidOffset)
+                            {
+                                lastValidOffset = val;
+                            }
+
+                            realAmount++;
+                        }
+
+                        if (amount > lastValidOffset && amount < endDatOffset)
+                        {
+                            hasExtraDRS = true;
+                            extraDrsOffset = amount;
+                            endDatOffset = amount;
+                        }
+
+                        amount = realAmount;
+                    }
+
+                }
+
+            }
+
+            //-----------------------------
+
+            if (!Directory::Exists(Path::Combine(directory, baseName)) && fileFormat != FileFormat::DECMP)
+            {
+                try
+                {
+                    Directory::CreateDirectory(Path::Combine(directory, baseName));
+                }
+                catch (Exception^ ex)
+                {
+                    Console::WriteLine("Failed to create directory: " + Path::Combine(directory, baseName));
+                    Console::WriteLine(ex);
+                    return;
+                }
+            }
+
+            idxj->WriteLine("DAT_AMOUNT:" + amount);
+            DatAmount = static_cast<int>(amount);
+
+            //-----------------------------
 
             int blocklength = static_cast<int>(amount * 4u);
 
             array<Byte>^ offsetblock = gcnew array<Byte>(blocklength);
             array<Byte>^ nameblock = gcnew array<Byte>(blocklength);
 
-            br->BaseStream->Position = offsetStart + 16;
+            br->BaseStream->Position = offsetStart + tableOffset;
 
             br->Read(offsetblock, 0, blocklength);
             br->Read(nameblock, 0, blocklength);
@@ -75,31 +167,19 @@ namespace EXTRACT
                 String^ format = Encoding::ASCII->GetString(nameblock, Temp, 4);
                 format = ValidateFormat(format)->ToUpperInvariant();
 
-                String^ FileFullName = Path::Combine(baseName, baseName + "_" + i.ToString("D3"));
-                if (isDecmp)
+                String^ fileFullName = Path::Combine(baseName, baseName + "_" + i.ToString("D3"));
+                if (fileFormat == FileFormat::DECMP)
                 {
-                    FileFullName = baseName + "_" + i.ToString("D3");
+                    fileFullName = baseName + "_" + i.ToString("D3");
                 }
                 if (format->Length > 0)
                 {
-                    FileFullName += "." + format;
+                    fileFullName += "." + format;
                 }
 
-                fileList[i] = gcnew KeyValuePair<int, String^>(offset, FileFullName);
+                fileList[i] = gcnew KeyValuePair<int, String^>(offset, fileFullName);
 
                 Temp += 4;
-            }
-
-            if (!Directory::Exists(Path::Combine(directory, baseName)) && !isDecmp)
-            {
-                try
-                {
-                    Directory::CreateDirectory(Path::Combine(directory, baseName));
-                }
-                catch (Exception^)
-                {
-                    Console::WriteLine("Failed to create directory: " + Path::Combine(directory, baseName));
-                }
             }
 
             DatFiles = gcnew array<String^>(amount);
@@ -135,23 +215,15 @@ namespace EXTRACT
                 }
 
                 String^ Line = "DAT_" + i.ToString("D3") + ":" + fileList[i]->Value;
-                if (idxj != nullptr)
-                {
-                    idxj->WriteLine(Line);
-                }
+                idxj->WriteLine(Line);
             }
 
             //---
             if (hasExtraDRS)
             {
-                String^ FileFullName = Path::Combine(baseName, baseName + "_EXTRA");
-                if (isDecmp)
-                {
-                    FileFullName = baseName + "_EXTRA";
-                }
-                FileFullName += ".REL";
+                String^ fileFullName = Path::Combine(baseName, baseName + "_EXTRA.REL");
 
-                int subFileLength = static_cast<int>(length - extraDrsOffset);
+                int subFileLength = static_cast<int>(fullLength - extraDrsOffset);
                 br->BaseStream->Position = offsetStart + extraDrsOffset;
 
                 array<Byte>^ endfile = gcnew array<Byte>(subFileLength);
@@ -160,21 +232,19 @@ namespace EXTRACT
                 {
                     try
                     {
-                        File::WriteAllBytes(Path::Combine(directory, FileFullName), endfile);
+                        File::WriteAllBytes(Path::Combine(directory, fileFullName), endfile);
                     }
                     catch (Exception^ ex)
                     {
-                        Console::WriteLine(FileFullName + ": " + ex);
+                        Console::WriteLine(fileFullName + ": " + ex);
                     }
 
                 }
 
-                String^ Line = "EXTRA_REL:" + FileFullName;
-                if (idxj != nullptr)
-                {
-                    idxj->WriteLine(Line);
-                }
-                ExtraRel = FileFullName;
+                String^ Line = "EXTRA_REL:" + fileFullName;
+                idxj->WriteLine(Line);
+
+                ExtraRel = fileFullName;
             }
 
 

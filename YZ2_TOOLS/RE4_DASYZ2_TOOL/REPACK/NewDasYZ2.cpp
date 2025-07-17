@@ -19,7 +19,7 @@ namespace REPACK
     ref class NewDasYZ2
     {
     public:
-        NewDasYZ2(Stream^ stream, array<DatInfo^>^ dat, UdasInfo^ udasGroup, DatInfo^ ExtraRel)
+        NewDasYZ2(Stream^ stream, array<DatInfo^>^ dat, UdasInfo^ udasGroup, DatInfo^ ExtraRel, bool IS_E3_VERSION)
         {
             array<Byte>^ EndBytes = gcnew array<Byte>(udasGroup->End->Length);
             array<Byte>^ MiddleBytes = gcnew array<Byte>(udasGroup->Middle->Length);
@@ -36,7 +36,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + udasGroup->End->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + udasGroup->End->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 
@@ -50,7 +51,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + udasGroup->Middle->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + udasGroup->Middle->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 
@@ -58,7 +60,7 @@ namespace REPACK
             bool hasYZ2 = false;
             {
                 MemoryStream^ datMS = gcnew MemoryStream();
-                Dat^ datWriter = gcnew Dat(datMS, dat, ExtraRel, 0);
+                Dat^ datWriter = gcnew Dat(datMS, dat, ExtraRel, 0, IS_E3_VERSION);
 
                 YZ2::YZ2Actions::YZ2Encode(datMS->ToArray(), yz2Bytes);
                 datMS->Close();

@@ -35,7 +35,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + udasGroup->End->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + udasGroup->End->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 
@@ -49,7 +50,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + udasGroup->Middle->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + udasGroup->Middle->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 
@@ -67,7 +69,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + udasGroup->Middle->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + udasGroup->Middle->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 

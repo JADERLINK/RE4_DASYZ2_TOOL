@@ -9,8 +9,14 @@ Extract and Repack DAT/UDAS/MAP/DAS/DRS/DECMP files (RE4 Big Endian) [GC/WII/X36
 <br>Platform: Windows
 <br>Dependencies: Microsoft .NET Framework 4.8 / MSVC v143 - VS 2022 C++
 
+**Update 2025-07-17**
+<br>Adicionado suporte aos arquivos da versão de GC "RE4 - E3 Ver. 04.08.13"
+<br>Para eles, foi adicionada a variável "IS_E3_VERSION:true" no arquivo .idxbig;
+<br>Pequena correção: agora a flag "UDAS_SOUNDFLAG:-2" é incluída no arquivo.
+<br>Adicionado suporte ao Linux via wine e seu sistema de diretório.
+
 **Update 2025-07-03**
-<br>Agora a tool extrai e faz o repack do arquivo REL, presente nos arquivos DRS de GC/WII;
+<br>Agora a tool extrai e faz o repack do arquivo adicional no DRS o arquivo REL, presente nos arquivos DRS de GC/WII;
 <br>Esse arquivo é definido na variável "EXTRA_REL" do arquivo .idxbig;
 
 # **YZ2 files can now be extracted and compressed.**
@@ -42,4 +48,4 @@ YZ2 compression by: Yamazaki Satoshi (Is the creator of compression)
 <br>Thanks to: OAleex and Krisp (for locating the source code of the compression algorithm)
 
 **At.te: JADERLINK**
-<br>2025-07-03
+<br>2025-07-17

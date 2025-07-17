@@ -28,20 +28,34 @@ namespace REPACK
     ref class Dat
     {
     public:
-        Dat(Stream^ stream, array<DatInfo^>^ dat, DatInfo^ ExtraRel, Int64 StartOffset)
+        Dat(Stream^ stream, array<DatInfo^>^ dat, DatInfo^ ExtraRel, Int64 StartOffset, bool IS_E3_VERSION)
         {
             stream->Position = StartOffset;
 
-            array<Byte>^ headerCont = gcnew array<Byte>(16);
-    
-            EndianBitConverter::GetBytes((UInt32)dat->Length, Endianness::BigEndian)->CopyTo(headerCont, 0); //Amount
+            array<Byte>^ headerCont;
 
-            if (ExtraRel != nullptr)
+            if (IS_E3_VERSION == false) // versão final
             {
-                EndianBitConverter::GetBytes(ExtraRel->Offset, Endianness::BigEndian)->CopyTo(headerCont, 4); //ExtraRelOffset
+                headerCont = gcnew array<Byte>(16);
+                EndianBitConverter::GetBytes((UInt32)dat->Length, Endianness::BigEndian)->CopyTo(headerCont, 0); //Amount
+
+                if (ExtraRel != nullptr)
+                {
+                    EndianBitConverter::GetBytes(ExtraRel->Offset, Endianness::BigEndian)->CopyTo(headerCont, 4); //ExtraRelOffset
+                }
+            }
+            else // é E3
+            {
+                headerCont = gcnew array<Byte>(4);
+                EndianBitConverter::GetBytes((UInt32)dat->Length, Endianness::BigEndian)->CopyTo(headerCont, 0); //Amount
+
+                if (ExtraRel != nullptr)
+                {
+                    EndianBitConverter::GetBytes(ExtraRel->Offset, Endianness::BigEndian)->CopyTo(headerCont, 0); //ExtraRelOffset, nesse caso, se tiver, sobrepõem o amount
+                }
             }
 
-            stream->Write(headerCont, 0, 16);
+            stream->Write(headerCont, 0, headerCont->Length);
 
             for (int i = 0; i < dat->Length; i++)
             {
@@ -70,7 +84,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + dat[i]->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + dat[i]->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 
@@ -89,7 +104,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + ExtraRel->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + ExtraRel->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 

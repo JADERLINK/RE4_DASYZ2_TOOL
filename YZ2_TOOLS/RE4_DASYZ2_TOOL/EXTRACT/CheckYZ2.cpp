@@ -25,14 +25,15 @@ namespace EXTRACT
         Int32 DatAmount = 0;
         array<String^>^ DatFiles = nullptr;
         String^ ExtraRel = nullptr;
+        bool IsE3Version = false;
 
-        CheckYZ2(StreamWriter^ idxj, Stream^ readStream, UInt32 offsetStart, UInt32 length, String^ directory, String^ baseName)
+        CheckYZ2(StreamWriter^ idxj, Stream^ readStream, UInt32 offsetStart, UInt32 length, String^ directory, String^ baseName, FileFormat fileFormat)
         {
             EndianBinaryReader^ br = gcnew EndianBinaryReader(readStream, System::Text::Encoding::UTF8, Endianness::BigEndian);
             br->BaseStream->Position = offsetStart;
 
             UInt32 amount = br->ReadUInt32();
-            if (amount >= 0x010000)
+            if (amount >= 0x010000 && fileFormat != FileFormat::DRS)
             {
                 hasYZ2 = true;
             }
@@ -78,17 +79,15 @@ namespace EXTRACT
 
                     YZ2::YZ2Actions::YZ2Decode(udasYz2, datArr);
 
-                    if (idxj != nullptr)
-                    {
-                        idxj->WriteLine("IS_DAT_COMPRESSED:true");
-                    }
+                    idxj->WriteLine("IS_DAT_COMPRESSED:true");
 
                     MemoryStream^ ms = gcnew MemoryStream(datArr);
 
-                    Dat^ a = gcnew Dat(idxj, ms, 0, datArr->Length, directory, baseName, false);
+                    Dat^ a = gcnew Dat(idxj, ms, 0, datArr->Length, directory, baseName, fileFormat);
                     DatAmount = a->DatAmount;
                     DatFiles = a->DatFiles;
                     ExtraRel = a->ExtraRel;
+                    IsE3Version = a->IsE3Version;
                     ms->Close();
                 }
                 else
@@ -98,11 +97,8 @@ namespace EXTRACT
                     br->Read(udasYz2, 0, static_cast<int>(length));
 
                     String^ FileFullName = Path::Combine(baseName, baseName + ".YZ2");
-                    if (idxj != nullptr)
-                    {
-                        idxj->WriteLine("HAS_YZ2:true");
-                        idxj->WriteLine("YZ2_PATH:" + FileFullName);
-                    }
+                    idxj->WriteLine("HAS_YZ2:true");
+                    idxj->WriteLine("YZ2_PATH:" + FileFullName);
 
                     YZ2Path = FileFullName;
 

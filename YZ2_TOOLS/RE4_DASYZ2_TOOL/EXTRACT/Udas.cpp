@@ -33,8 +33,9 @@ namespace EXTRACT
         String^ SndPath = nullptr;
         bool hasYZ2 = false;
         String^ YZ2Path = nullptr;
+        bool IsE3Version = false;
 
-        Udas(StreamWriter^ idxj, Stream^ readStream, String^ directory, String^ baseName)
+        Udas(StreamWriter^ idxj, Stream^ readStream, String^ directory, String^ baseName, FileFormat fileFormat)
         {
             EndianBinaryReader^ br = gcnew EndianBinaryReader(readStream, Endianness::BigEndian);
 
@@ -61,7 +62,7 @@ namespace EXTRACT
                 temp += 32;
             }
 
-            if (UdasList[0].offset > readStream->Length)
+            if (UdasList->Count == 0 || UdasList[0].offset >= readStream->Length || UdasList[0].offset >= 0x010000)
             {
                 Console::WriteLine("Error extracting file, first offset is invalid!");
                 return;
@@ -75,9 +76,11 @@ namespace EXTRACT
                     {
                         Directory::CreateDirectory(Path::Combine(directory, baseName));
                     }
-                    catch (Exception^)
+                    catch (Exception^ ex)
                     {
                         Console::WriteLine("Failed to create directory: " + Path::Combine(directory, baseName));
+                        Console::WriteLine(ex);
+                        return;
                     }
                 }
 
@@ -87,16 +90,16 @@ namespace EXTRACT
                 br->Position = 0;
                 br->Read(udasTop, 0, udasTopLength);
 
-                String^ FileFullName = Path::Combine(baseName, baseName + "_TOP.HEX");
-                idxj->WriteLine("!UDAS_TOP:" + FileFullName);
+                String^ fileFullName = Path::Combine(baseName, baseName + "_TOP.HEX");
+                idxj->WriteLine("!UDAS_TOP:" + fileFullName);
 
                 try
                 {
-                    File::WriteAllBytes(Path::Combine(directory, FileFullName), udasTop);
+                    File::WriteAllBytes(Path::Combine(directory, fileFullName), udasTop);
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine(FileFullName + ": " + ex);
+                    Console::WriteLine(fileFullName + ": " + ex);
                 }
             }
 
@@ -115,16 +118,16 @@ namespace EXTRACT
                     br->Position = newOffset;
                     br->Read(udasMiddle, 0, newlength);
 
-                    String^ FileFullName = Path::Combine(baseName, baseName + "_MIDDLE.HEX");
-                    idxj->WriteLine("!UDAS_MIDDLE:" + FileFullName);
+                    String^ fileFullName = Path::Combine(baseName, baseName + "_MIDDLE.HEX");
+                    idxj->WriteLine("!UDAS_MIDDLE:" + fileFullName);
 
                     try
                     {
-                        File::WriteAllBytes(Path::Combine(directory, FileFullName), udasMiddle);
+                        File::WriteAllBytes(Path::Combine(directory, fileFullName), udasMiddle);
                     }
                     catch (Exception^ ex)
                     {
-                        Console::WriteLine(FileFullName + ": " + ex);
+                        Console::WriteLine(fileFullName + ": " + ex);
                     }
                 }
             }
@@ -145,19 +148,21 @@ namespace EXTRACT
                     UInt32 startOffset = UdasList[i].offset;
 
                     //checar YZ2
-                    CheckYZ2^ yz2 = gcnew CheckYZ2(idxj, readStream, startOffset, length, directory, baseName);
+                    CheckYZ2^ yz2 = gcnew CheckYZ2(idxj, readStream, startOffset, length, directory, baseName, fileFormat);
                     hasYZ2 = yz2->hasYZ2;
                     YZ2Path = yz2->YZ2Path;
                     DatAmount = yz2->DatAmount;
                     DatFiles = yz2->DatFiles;
                     ExtraRel = yz2->ExtraRel;
+                    IsE3Version = yz2->IsE3Version;
 
                     if (!yz2->hasYZ2)
                     {
-                        Dat^ a = gcnew Dat(idxj, readStream, startOffset, length, directory, baseName, false);
+                        Dat^ a = gcnew Dat(idxj, readStream, startOffset, length, directory, baseName, fileFormat);
                         DatAmount = a->DatAmount;
                         DatFiles = a->DatFiles;
                         ExtraRel = a->ExtraRel;
+                        IsE3Version = a->IsE3Version;
                     }
 
                     readedDat = true;
@@ -187,40 +192,49 @@ namespace EXTRACT
                             br->Position = subOffset;
                             br->Read(udasMiddle, 0, subLength);
 
-                            String^ FileFullName = Path::Combine(baseName, baseName + "_MIDDLE.HEX");
-                            idxj->WriteLine("!UDAS_MIDDLE:" + FileFullName);
+                            String^ fileFullName = Path::Combine(baseName, baseName + "_MIDDLE.HEX");
+                            idxj->WriteLine("!UDAS_MIDDLE:" + fileFullName);
 
                             try
                             {
-                                File::WriteAllBytes(Path::Combine(directory, FileFullName), udasMiddle);
+                                File::WriteAllBytes(Path::Combine(directory, fileFullName), udasMiddle);
                             }
                             catch (Exception^ ex)
                             {
-                                Console::WriteLine(FileFullName + ": " + ex);
+                                Console::WriteLine(fileFullName + ": " + ex);
                             }
                         }
                     }
 
                     //end
-                    if (length > 0)
                     {
                         array<Byte>^ udasEnd = gcnew array<Byte>(length);
 
                         br->Position = startOffset;
                         br->Read(udasEnd, 0, length);
 
-                        String^ FileFullNameEnd = Path::Combine(baseName, baseName + "_END.SND");
-                        idxj->WriteLine("UDAS_END:" + FileFullNameEnd);
+                        String^ fileFullNameEnd;
 
-                        SndPath = FileFullNameEnd;
+                        if (length > 0 && type == 0x04) // 4
+                        {
+                            fileFullNameEnd = Path::Combine(baseName, baseName + "_END.SND");
+                            idxj->WriteLine("UDAS_END:" + fileFullNameEnd);
+                        }
+                        else // type == 0xFF_FF_FF_FE // -2
+                        {
+                            fileFullNameEnd = Path::Combine(baseName, baseName + "_END.EMPTY");
+                            idxj->WriteLine("UDAS_END:" + fileFullNameEnd);
+                        }
+
+                        SndPath = fileFullNameEnd;
 
                         try
                         {
-                            File::WriteAllBytes(Path::Combine(directory, FileFullNameEnd), udasEnd);
+                            File::WriteAllBytes(Path::Combine(directory, fileFullNameEnd), udasEnd);
                         }
                         catch (Exception^ ex)
                         {
-                            Console::WriteLine(FileFullNameEnd + ": " + ex);
+                            Console::WriteLine(fileFullNameEnd + ": " + ex);
                         }
                     }
 

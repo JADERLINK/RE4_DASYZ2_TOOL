@@ -29,7 +29,7 @@ namespace REPACK
     ref class Udas
     {
     public:
-        Udas(Stream^ stream, array<DatInfo^>^ dat, UdasInfo^ udasGroup, bool isDRS, DatInfo^ ExtraRel)
+        Udas(Stream^ stream, array<DatInfo^>^ dat, UdasInfo^ udasGroup, bool isDRS, DatInfo^ ExtraRel, bool IS_E3_VERSION)
         {
             array<Byte>^ EndBytes = gcnew array<Byte>(udasGroup->End->Length);
             array<Byte>^ MiddleBytes = gcnew array<Byte>(udasGroup->Middle->Length);
@@ -46,7 +46,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + udasGroup->End->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + udasGroup->End->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 
@@ -60,7 +61,8 @@ namespace REPACK
                 }
                 catch (Exception^ ex)
                 {
-                    Console::WriteLine("Error to read file: " + udasGroup->Middle->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + udasGroup->Middle->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
 
@@ -68,7 +70,7 @@ namespace REPACK
 
             stream->Write(TopBytes, 0, TopBytes->Length);
 
-            Dat^ datWriter = gcnew Dat(stream, dat, ExtraRel, TopBytes->Length);
+            Dat^ datWriter = gcnew Dat(stream, dat, ExtraRel, TopBytes->Length, IS_E3_VERSION);
 
             if (MiddleBytes->Length != 0)
             {
@@ -106,7 +108,8 @@ namespace REPACK
                 catch (Exception^ ex)
                 {
                     TopBytes = MakerNewTopBytes(hasEnd, hasDat, udasGroup->SoundFlag, isDRS);
-                    Console::WriteLine("Error to read file: " + udasGroup->Top->fileInfo->Name + Environment::NewLine + " ex: " + ex);
+                    Console::WriteLine("Error to read file: " + udasGroup->Top->fileInfo->Name);
+                    Console::WriteLine(ex);
                 }
             }
             else

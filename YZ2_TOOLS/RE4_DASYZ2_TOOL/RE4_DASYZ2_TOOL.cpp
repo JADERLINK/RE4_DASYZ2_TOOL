@@ -17,7 +17,7 @@ int main(array<System::String^>^ args)
     Console::WriteLine("# Tool by: JADERLINK");
     Console::WriteLine("# YZ2 compression by: Yamazaki Satoshi");
     Console::WriteLine("# Thanks for OAleex and Krisp");
-    Console::WriteLine("# Version 2025-07-03");
+    Console::WriteLine("# Version 2025-07-17");
     Console::WriteLine("");
 
     bool usingBatFile = false;
